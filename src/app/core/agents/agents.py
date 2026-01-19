@@ -27,6 +27,20 @@ def _extract_last_ai_content(messages: List[object]) -> str:
     return ""
 
 
+def _format_history(history: List[dict] | None) -> str:
+    """Format conversation history for the agent."""
+    if not history:
+        return "No previous history."
+    
+    formatted = []
+    for turn in history:
+        formatted.append(f"Turn {turn.get('turn', '?')}:")
+        formatted.append(f"User: {turn.get('question', '')}")
+        formatted.append(f"Assistant: {turn.get('answer', '')}")
+        formatted.append("---")
+    return "\n".join(formatted)
+
+
 # Define agents at module level for reuse
 retrieval_agent = create_agent(
     model=create_chat_model(),
@@ -57,8 +71,15 @@ def retrieval_node(state: QAState) -> QAState:
     - Stores the consolidated context string in `state["context"]`.
     """
     question = state["question"]
+    history = state.get("history", [])
+    history_str = _format_history(history)
 
-    result = retrieval_agent.invoke({"messages": [HumanMessage(content=question)]})
+    user_content = f"""Conversation History:
+{history_str}
+
+Current Question: {question}"""
+
+    result = retrieval_agent.invoke({"messages": [HumanMessage(content=user_content)]})
 
     messages = result.get("messages", [])
     context = ""
@@ -84,8 +105,16 @@ def summarization_node(state: QAState) -> QAState:
     """
     question = state["question"]
     context = state.get("context")
+    history = state.get("history", [])
+    history_str = _format_history(history)
 
-    user_content = f"Question: {question}\n\nContext:\n{context}"
+    user_content = f"""Conversation History:
+{history_str}
+
+Current Question: {question}
+
+Context:
+{context}"""
 
     result = summarization_agent.invoke(
         {"messages": [HumanMessage(content=user_content)]}

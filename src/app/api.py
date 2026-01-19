@@ -2,12 +2,23 @@ from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile, status
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 
-from .models import QuestionRequest, QAResponse
+from .models import (
+    QuestionRequest, 
+    QAResponse, 
+    ConversationalQARequest, 
+    ConversationalQAResponse,
+    ConversationTurn
+)
 from .services.qa_service import answer_question
 from .services.indexing_service import index_pdf_file
+from .services.session_service import SessionService
+from .core.agents.graph import run_conversational_qa_flow
+from .core.database import init_db
 
-
+# Initialize database on startup
+init_db()
 
 app = FastAPI(
     title="Class 12 Multi-Agent RAG Demo",
@@ -17,6 +28,19 @@ app = FastAPI(
         "will be wired to a multi-agent RAG pipeline in later user stories."
     ),
     version="0.1.0",
+)
+
+@app.on_event("startup")
+async def startup_event():
+    # Auto-cleanup sessions older than 7 days
+    SessionService.cleanup_old_sessions(7)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -68,6 +92,62 @@ async def qa_endpoint(payload: QuestionRequest) -> QAResponse:
         answer=result.get("answer", ""),
         context=result.get("context", ""),
     )
+
+
+@app.post("/qa/conversation", response_model=ConversationalQAResponse, status_code=status.HTTP_200_OK)
+async def conversational_qa(payload: ConversationalQARequest) -> ConversationalQAResponse:
+    """Submit a question in a conversational context."""
+    
+    question = payload.question.strip()
+    if not question:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="`question` must be a non-empty string.",
+        )
+
+    session_id = payload.session_id
+    if not session_id:
+        session_id = SessionService.create_session()
+    
+    # Retrieve history
+    history = SessionService.get_history(session_id)
+    
+    # Run conversational flow
+    result = run_conversational_qa_flow(question, history, session_id)
+    
+    answer = result.get("answer", "")
+    context = result.get("context", "") # Context might be missing or None
+    
+    # Update session history
+    SessionService.add_turn(session_id, question, answer, context)
+    
+    # Return updated history
+    updated_history = SessionService.get_history(session_id)
+    
+    return ConversationalQAResponse(
+        answer=answer,
+        context=context,
+        session_id=session_id,
+        history=updated_history
+    )
+
+
+@app.get("/qa/session/{session_id}/history", response_model=list[ConversationTurn], status_code=status.HTTP_200_OK)
+async def get_conversation_history(session_id: str) -> list[ConversationTurn]:
+    """Retrieve history for a specific session."""
+    return SessionService.get_history(session_id)
+
+
+@app.get("/qa/sessions", status_code=status.HTTP_200_OK)
+async def list_sessions() -> list[dict]:
+    """List all past chat sessions."""
+    return SessionService.list_sessions()
+
+
+@app.delete("/qa/session/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_session(session_id: str):
+    """Delete a specific chat session."""
+    SessionService.delete_session(session_id)
 
 
 @app.post("/index-pdf", status_code=status.HTTP_200_OK)

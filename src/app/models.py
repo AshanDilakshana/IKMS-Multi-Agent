@@ -21,3 +21,22 @@ class QAResponse(BaseModel):
 
     answer: str
     context: str
+
+from typing import List, Optional
+
+class ConversationalQARequest(BaseModel):
+    question: str
+    session_id: Optional[str] = None
+
+class ConversationTurn(BaseModel):
+    turn: int
+    question: str
+    answer: str
+    context: Optional[str] = None
+    timestamp: str
+
+class ConversationalQAResponse(BaseModel):
+    answer: str
+    context: Optional[str]
+    session_id: str
+    history: List[ConversationTurn]

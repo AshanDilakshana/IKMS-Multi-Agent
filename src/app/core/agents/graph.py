@@ -67,6 +67,41 @@ def run_qa_flow(question: str) -> Dict[str, Any]:
         "context": None,
         "draft_answer": None,
         "answer": None,
+        "history": [],
+        "conversation_summary": None,
+        "session_id": None,
+    }
+
+    final_state = graph.invoke(initial_state)
+
+    return final_state
+
+
+def run_conversational_qa_flow(
+    question: str,
+    history: list[dict] | None = None,
+    session_id: str | None = None
+) -> QAState:
+    """Run the conversational multi-agent QA flow.
+    
+    Args:
+        question: The user's question.
+        history: List of previous conversation turns.
+        session_id: Unique session identifier.
+    
+    Returns:
+        Final graph state with answer.
+    """
+    graph = get_qa_graph()
+
+    initial_state: QAState = {
+        "question": question,
+        "context": None,
+        "draft_answer": None,
+        "answer": None,
+        "history": history or [],
+        "conversation_summary": None,
+        "session_id": session_id,
     }
 
     final_state = graph.invoke(initial_state)
