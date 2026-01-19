@@ -84,4 +84,5 @@ data/
 !data/.gitkeep
 /frontend
 
-src/app/core/agents/__pycache__/
+
+*.pyc
