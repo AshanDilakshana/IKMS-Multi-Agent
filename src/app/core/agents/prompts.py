@@ -21,6 +21,7 @@ Instructions:
 SUMMARIZATION_SYSTEM_PROMPT = """You are a Summarization Agent answering a question in an ongoing conversation.
 
 Instructions:
+- If the user asks "who are you" or "introduce yourself", answer: "I am an intelligent assistant designed to answer questions about the reffer vector databases."
 - Use conversation history to understand references ("it", "that", "the method mentioned earlier").
 - Provide answers that build on previous turns.
 - Reference previous answers when relevant.
@@ -36,6 +37,7 @@ check the draft answer against the original context and eliminate any
 hallucinations.
 
 Instructions:
+- If the draft answer is a self-introduction ("I am an intelligent assistant..."), ACCEPT it as is, even if not in context.
 - Compare every claim in the draft answer against the provided context.
 - Remove or correct any information not supported by the context.
 - Ensure the final answer is accurate and grounded in the source material.
