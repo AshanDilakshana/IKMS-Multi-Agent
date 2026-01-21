@@ -86,3 +86,4 @@ data/
 
 
 *.pyc
+/src/app/__pycache__
