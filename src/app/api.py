@@ -45,6 +45,12 @@ app.add_middleware(
 )
 
 
+@app.get("/", status_code=status.HTTP_200_OK)
+async def root():
+    """Root endpoint for health checking."""
+    return {"status": "ok", "message": "Backend is running"}
+
+
 
 @app.exception_handler(Exception)
 async def unhandled_exception_handler(
@@ -200,9 +206,9 @@ async def index_pdf(file: UploadFile = File(...)) -> dict:
     }
 
 
-if __name__ == "__main__":
-    import uvicorn
-    import os
-    port = int(os.getenv("PORT", 8001))
-    uvicorn.run("src.app.api:app", host="0.0.0.0", port=port, reload=True)
+import os
+import uvicorn
 
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    uvicorn.run("main:app", port=port, reload=True)
