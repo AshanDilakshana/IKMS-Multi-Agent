@@ -46,7 +46,7 @@ app.add_middleware(
 
 
 @app.get("/", status_code=status.HTTP_200_OK)
-async def root():
+def read_root():
     """Root endpoint for health checking."""
     return {"status": "ok", "message": "Backend is running"}
 
