@@ -45,71 +45,6 @@ app.add_middleware(
 )
 
 
-@app.get("/", response_class=HTMLResponse)
-async def root():
-    """Root endpoint to check if the backend is running."""
-    return """
-    <!DOCTYPE html>
-    <html>
-        <head>
-            <title>Backend Status</title>
-            <style>
-                body {
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    height: 100vh;
-                    margin: 0;
-                    background: linear-gradient(135deg, #1e1e2f 0%, #2d2d44 100%);
-                    color: white;
-                }
-                .container {
-                    text-align: center;
-                    padding: 2rem;
-                    background: rgba(255, 255, 255, 0.1);
-                    backdrop-filter: blur(10px);
-                    border-radius: 15px;
-                    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-                    border: 1px solid rgba(255, 255, 255, 0.18);
-                }
-                h1 {
-                    margin: 0;
-                    font-size: 2.5rem;
-                    background: linear-gradient(to right, #00c6ff, #0072ff);
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                }
-                p {
-                    font-size: 1.2rem;
-                    opacity: 0.8;
-                }
-                .status-dot {
-                    display: inline-block;
-                    width: 12px;
-                    height: 12px;
-                    background-color: #4caf50;
-                    border-radius: 50%;
-                    margin-right: 10px;
-                    box-shadow: 0 0 10px #4caf50;
-                    animation: pulse 2s infinite;
-                }
-                @keyframes pulse {
-                    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
-                    70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
-                    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
-                }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>IKMS Multi-Agent API</h1>
-                <p><span class="status-dot"></span>Backend is running</p>
-            </div>
-        </body>
-    </html>
-    """
-
 
 @app.exception_handler(Exception)
 async def unhandled_exception_handler(
@@ -257,9 +192,17 @@ async def index_pdf(file: UploadFile = File(...)) -> dict:
         if tmp_path.exists():
             os.remove(tmp_path)
 
+
     return {
         "filename": file.filename,
         "chunks_indexed": chunks_indexed,
         "message": "PDF indexed successfully.",
     }
+
+
+if __name__ == "__main__":
+    import uvicorn
+    import os
+    port = int(os.getenv("PORT", 8001))
+    uvicorn.run("src.app.api:app", host="0.0.0.0", port=port, reload=True)
 

@@ -3,7 +3,7 @@ services:
     name: ikms-multi-agent
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn src.app.api:app --host 0.0.0.0 --port 8001
+    startCommand: uvicorn src.app.api:app --port 8001
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
