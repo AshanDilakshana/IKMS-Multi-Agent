@@ -429,10 +429,9 @@ a5c991b2a
 
 ```
 2 3
-```
 
 ## NewFeatures
 
 - Memorizing past history to refer to it and answer the next question
-- Storing past chat in the DB using SQLite
+- Storing past chat in the DB using MongoDB
 - We can continue past chat

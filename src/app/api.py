@@ -15,10 +15,9 @@ from .services.qa_service import answer_question
 from .services.indexing_service import index_pdf_file
 from .services.session_service import SessionService
 from .core.agents.graph import run_conversational_qa_flow
-from .core.database import init_db
 
-# Initialize database on startup
-init_db()
+# Database is initialized lazily or via connection pool
+
 
 app = FastAPI(
     title="Class 12 Multi-Agent RAG Demo",

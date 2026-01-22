@@ -1,44 +1,22 @@
-import sqlite3
-import os
-from contextlib import contextmanager
+from pymongo import MongoClient
+from pymongo.database import Database
+from .config import get_settings
 
-DB_PATH = "data/chat_history.db"
+def get_db_client() -> MongoClient:
+    """Get a MongoDB client instance."""
+    settings = get_settings()
+    return MongoClient(settings.database_url)
 
-def init_db():
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
+def get_db() -> Database:
+    """Get the MongoDB database instance."""
+    client = get_db_client()
+    # The database name is usually part of the connection string or we can pick a default
+    # For MongoDB Atlas, the default database is often in the path, but let's assume 'chat_history' if not specified
+    # or get it from the connection itself if possible. 
+    # However, pymongo's get_default_database() is useful if the URI has a db name.
     
-    # Sessions table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS sessions (
-            id TEXT PRIMARY KEY,
-            title TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    
-    # Messages table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS messages (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            session_id TEXT,
-            role TEXT,
-            content TEXT,
-            context TEXT,
-            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(session_id) REFERENCES sessions(id)
-        )
-    ''')
-    
-    conn.commit()
-    conn.close()
-
-@contextmanager
-def get_db_connection():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row  # Return dict-like rows
     try:
-        yield conn
-    finally:
-        conn.close()
+        return client.get_default_database()
+    except Exception:
+        # Fallback if no database specified in URI
+        return client["chat_history"]
