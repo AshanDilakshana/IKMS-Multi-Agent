@@ -23,6 +23,3 @@ dependencies = [
     "uvicorn>=0.38.0",
 ]
 
-[project.scripts]
-app = "src.app.app:app"
-
