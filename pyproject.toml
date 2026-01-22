@@ -26,8 +26,3 @@ dependencies = [
 [project.scripts]
 app = "src.app.app:app"
 
-[tool.vercel.scripts]
-build = "src.app.api:app",
-                "--reload",
-                "--port",
-                "8001"
