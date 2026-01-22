@@ -1,3 +1,5 @@
+import os
+import tempfile
 from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile, status
@@ -166,15 +168,28 @@ async def index_pdf(file: UploadFile = File(...)) -> dict:
             detail="Only PDF files are supported.",
         )
 
-    upload_dir = Path("data/uploads")
-    upload_dir.mkdir(parents=True, exist_ok=True)
+    # upload_dir = Path("data/uploads")
+    # upload_dir.mkdir(parents=True, exist_ok=True)
 
-    file_path = upload_dir / file.filename
-    contents = await file.read()
-    file_path.write_bytes(contents)
+    # file_path = upload_dir / file.filename
+    # contents = await file.read()
+    # file_path.write_bytes(contents)
 
-    # Index the saved PDF
-    chunks_indexed = index_pdf_file(file_path)
+    # Create a temporary file to store the upload
+    suffix = Path(file.filename).suffix
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        content = await file.read()
+        tmp.write(content)
+        tmp_path = Path(tmp.name)
+
+    try:        
+        # Index the saved PDF
+        #  chunks_indexed = index_pdf_file(file_path)
+        chunks_indexed = index_pdf_file(tmp_path)
+    finally:
+        # Clean up the temporary file
+        if tmp_path.exists():
+            os.remove(tmp_path)
 
     return {
         "filename": file.filename,
