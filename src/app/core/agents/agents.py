@@ -74,8 +74,7 @@ def retrieval_node(state: QAState) -> QAState:
     history = state.get("history", [])
     history_str = _format_history(history)
 
-    user_content = f"""Conversation History:
-{history_str}
+    user_content = f"""Conversation History:{history_str}
 
 Current Question: {question}"""
 
