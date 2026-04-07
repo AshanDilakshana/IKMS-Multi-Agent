@@ -110,12 +110,13 @@ class SessionService:
         })
         return session_id
 
+    # list all sessions frontend sidebar
     @classmethod
     def list_sessions(cls) -> List[dict]:
         db = get_db()
         # Return all sessions sorted by created_at descending
         sessions = list(db.sessions.find({}, {"_id": 0}).sort("created_at", -1))
-        # No serialization needed as pymongo returns dicts (but we might need to handle datetime if fastAPI doesn't)
+        # No serialization needed as pymongo returns dicts
         return sessions
 
     @classmethod
