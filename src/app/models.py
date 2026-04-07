@@ -24,6 +24,7 @@ class QAResponse(BaseModel):
 
 from typing import List, Optional
 
+
 class ConversationalQARequest(BaseModel):
     question: str
     session_id: Optional[str] = None
