@@ -100,7 +100,7 @@ async def qa_endpoint(payload: QuestionRequest) -> QAResponse:
         context=result.get("context", ""),
     )
 
-
+ 
 @app.post("/qa/conversation", response_model=ConversationalQAResponse, status_code=status.HTTP_200_OK)
 async def conversational_qa(payload: ConversationalQARequest) -> ConversationalQAResponse:
     """Submit a question in a conversational context."""
@@ -119,18 +119,16 @@ async def conversational_qa(payload: ConversationalQARequest) -> ConversationalQ
     # Retrieve history
     history = SessionService.get_history(session_id)
     
-    # Run conversational flow
+    # conversational flow give history+question
     result = run_conversational_qa_flow(question, history, session_id)
     
     answer = result.get("answer", "")
-    context = result.get("context", "") # Context might be missing or None
+    context = result.get("context", "") 
     
     # Update session history
     SessionService.add_turn(session_id, question, answer, context)
     
-    # Return updated history
     updated_history = SessionService.get_history(session_id)
-    
     return ConversationalQAResponse(
         answer=answer,
         context=context,
@@ -139,6 +137,7 @@ async def conversational_qa(payload: ConversationalQARequest) -> ConversationalQ
     )
 
 
+ # get conversation history from
 @app.get("/qa/session/{session_id}/history", response_model=list[ConversationTurn], status_code=status.HTTP_200_OK)
 async def get_conversation_history(session_id: str) -> list[ConversationTurn]:
     """Retrieve history for a specific session."""
@@ -155,6 +154,8 @@ async def list_sessions() -> list[dict]:
 async def delete_session(session_id: str):
     """Delete a specific chat session."""
     SessionService.delete_session(session_id)
+
+
 
 
 @app.post("/index-pdf", status_code=status.HTTP_200_OK)
@@ -180,6 +181,7 @@ async def index_pdf(file: UploadFile = File(...)) -> dict:
     # file_path = upload_dir / file.filename
     # contents = await file.read()
     # file_path.write_bytes(contents)
+
 
     # Create a temporary file to store the upload
     suffix = Path(file.filename).suffix
